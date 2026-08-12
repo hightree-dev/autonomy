@@ -107,43 +107,47 @@ class TrajCommander(Node):
         ref.pose.position.z = sp.position.z
         self.ref_pub.publish(ref)
 
+    def set_phase(self, phase):
+        self.phase = phase
+        self.pending = None
+
     def tick(self):
         self.phase_pub.publish(String(data=self.phase))
         if self.phase == "wait":
             if self.state and self.state.connected and self.pose:
-                self.phase = "mode"
+                self.set_phase("mode")
         elif self.phase == "mode":
             if self.state.mode != "GUIDED":
                 self.call(self.mode_cli, SetMode.Request(custom_mode="GUIDED"))
             else:
-                self.phase = "arm"
+                self.set_phase("arm")
         elif self.phase == "arm":
             if not self.state.armed:
                 self.call(self.arm_cli, CommandBool.Request(value=True))
             else:
-                self.phase = "takeoff"
+                self.set_phase("takeoff")
         elif self.phase == "takeoff":
             result = self.call(
                 self.takeoff_cli, CommandTOL.Request(altitude=float(self.z))
             )
             if result is not None and result.success:
-                self.phase = "climb"
+                self.set_phase("climb")
         elif self.phase == "climb":
             if self.pose.pose.position.z > self.z * 0.95:
                 self.origin = (self.pose.pose.position.x, self.pose.pose.position.y)
-                self.phase = "settle"
+                self.set_phase("settle")
                 self.phase_t0 = self.now()
                 self.get_logger().info(f"origin: {self.origin}")
         elif self.phase == "settle":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
             if self.now() - self.phase_t0 > self.settle_time:
-                self.phase = "track"
+                self.set_phase("track")
                 self.traj_t0 = self.now()
                 self.get_logger().info("tracking start")
         elif self.phase == "track":
             t = self.now() - self.traj_t0
             if t > self.duration:
-                self.phase = "hold"
+                self.set_phase("hold")
                 self.phase_t0 = self.now()
                 self.get_logger().info("tracking done")
                 return
@@ -155,7 +159,7 @@ class TrajCommander(Node):
                 if self.state.mode != "LAND":
                     self.call(self.mode_cli, SetMode.Request(custom_mode="LAND"))
                 else:
-                    self.phase = "done"
+                    self.set_phase("done")
                     self.get_logger().info("landing")
         elif self.phase == "done":
             if self.state and not self.state.armed:
