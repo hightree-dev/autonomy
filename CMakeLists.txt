@@ -7,6 +7,13 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+
+install(DIRECTORY models config launch worlds rviz
+  DESTINATION share/${PROJECT_NAME}
+)
+
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
