@@ -61,6 +61,7 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
+            "namespace": LaunchConfiguration("namespace"),
             "world_name": LaunchConfiguration("world"),
         }.items(),
         condition=IfCondition(LaunchConfiguration("spawn_robot")),
