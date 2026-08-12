@@ -3,7 +3,7 @@
 <package format="3">
   <name>autonomy_benchmark</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Trajectory tracking benchmark: reference generation, commanding, bag analysis</description>
   <maintainer email="nhko1967@aluxonline.com">pocl</maintainer>
   <license>MIT</license>
 
@@ -11,6 +11,8 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>rosbag2_py</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>mavros_msgs</exec_depend>
   <exec_depend>mavros</exec_depend>
