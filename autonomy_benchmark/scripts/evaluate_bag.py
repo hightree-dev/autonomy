@@ -53,7 +53,7 @@ def interp_ref(refs, t):
             lo = mid + 1
         else:
             hi = mid
-    i = max(1, lo)
+    i = min(max(1, lo), len(refs) - 1)
     t0, m0 = refs[i - 1]
     t1, m1 = refs[i]
     a = 0.0 if t1 == t0 else min(1.0, max(0.0, (t - t0) / (t1 - t0)))
