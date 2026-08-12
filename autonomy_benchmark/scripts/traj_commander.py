@@ -36,6 +36,7 @@ class TrajCommander(Node):
         self.phase = "wait"
         self.phase_t0 = None
         self.traj_t0 = None
+        self.pending = None
 
         self.create_subscription(State, "/mavros/state", self.on_state, 10)
         self.create_subscription(
@@ -69,9 +70,15 @@ class TrajCommander(Node):
         return self.get_clock().now().nanoseconds * 1e-9
 
     def call(self, client, req):
-        if not client.service_is_ready():
-            return None
-        return client.call_async(req)
+        if self.pending is not None:
+            if not self.pending.done():
+                return None
+            result = self.pending.result()
+            self.pending = None
+            return result
+        if client.service_is_ready():
+            self.pending = client.call_async(req)
+        return None
 
     def publish_setpoint(self, pos, vel):
         sp = PositionTarget()
@@ -116,8 +123,11 @@ class TrajCommander(Node):
             else:
                 self.phase = "takeoff"
         elif self.phase == "takeoff":
-            self.call(self.takeoff_cli, CommandTOL.Request(altitude=float(self.z)))
-            self.phase = "climb"
+            result = self.call(
+                self.takeoff_cli, CommandTOL.Request(altitude=float(self.z))
+            )
+            if result is not None and result.success:
+                self.phase = "climb"
         elif self.phase == "climb":
             if self.pose.pose.position.z > self.z * 0.95:
                 self.origin = (self.pose.pose.position.x, self.pose.pose.position.y)
@@ -142,9 +152,11 @@ class TrajCommander(Node):
         elif self.phase == "hold":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
             if self.now() - self.phase_t0 > 3.0:
-                self.call(self.mode_cli, SetMode.Request(custom_mode="LAND"))
-                self.phase = "done"
-                self.get_logger().info("landing")
+                if self.state.mode != "LAND":
+                    self.call(self.mode_cli, SetMode.Request(custom_mode="LAND"))
+                else:
+                    self.phase = "done"
+                    self.get_logger().info("landing")
         elif self.phase == "done":
             if self.state and not self.state.armed:
                 self.get_logger().info("benchmark finished")
