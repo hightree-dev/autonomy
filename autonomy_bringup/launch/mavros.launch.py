@@ -1,4 +1,4 @@
-"""Launch mavros connected to the ArduPilot SITL SERIAL0 port."""
+"""Launch mavros connected to the SITL mavproxy udp output (14551)."""
 import os
 
 from ament_index_python.packages import get_package_share_directory
