@@ -32,17 +32,24 @@ def read_bag(path):
     return refs, poses, phases
 
 
+WINDOW_MARGIN = 0.25
+
+
 def track_window(phases):
     t_start = None
+    t_end = None
     for t, phase in phases:
         if phase == "track":
             if t_start is None:
                 t_start = t
         elif t_start is not None:
-            return t_start, t
+            t_end = t
+            break
     if t_start is None:
         raise SystemExit("no track phase in bag")
-    return t_start, phases[-1][0]
+    if t_end is None:
+        t_end = phases[-1][0]
+    return t_start + WINDOW_MARGIN, t_end - WINDOW_MARGIN
 
 
 def interp_ref(refs, t):
