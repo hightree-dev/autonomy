@@ -55,7 +55,7 @@ def generate_robot_launch_actions(context: LaunchContext, *args, **kwargs):
         f"<fdm_addr>{sim_address}</fdm_addr>",
     )
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".sdf")
     sdf_file_modified = temp_file.name
 
     with open(sdf_file_modified, "w") as temp_file:
