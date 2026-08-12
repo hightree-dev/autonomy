@@ -28,7 +28,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>0.084 0 0</cp>
       <forward>0 1 0</forward>
@@ -45,7 +45,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>-0.084 0 0</cp>
       <forward>0 -1 0</forward>
@@ -63,7 +63,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>0.084 0 0</cp>
       <forward>0 1 0</forward>
@@ -80,7 +80,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>-0.084 0 0</cp>
       <forward>0 -1 0</forward>
@@ -98,7 +98,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>0.084 0 0</cp>
       <forward>0 -1 0</forward>
@@ -115,7 +115,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>-0.084 0 0</cp>
       <forward>0 1 0</forward>
@@ -133,7 +133,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>0.084 0 0</cp>
       <forward>0 -1 0</forward>
@@ -150,7 +150,7 @@
       <cla_stall>-0.025</cla_stall>
       <cda_stall>0.0</cda_stall>
       <cma_stall>0.0</cma_stall>
-      <area>0.002</area>
+      <area>0.0034</area>
       <air_density>1.2041</air_density>
       <cp>-0.084 0 0</cp>
       <forward>0 1 0</forward>
@@ -222,8 +222,8 @@
         <d_gain>0</d_gain>
         <i_max>0</i_max>
         <i_min>0</i_min>
-        <cmd_max>2.5</cmd_max>
-        <cmd_min>-2.5</cmd_min>
+        <cmd_max>8</cmd_max>
+        <cmd_min>-8</cmd_min>
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
 
@@ -240,8 +240,8 @@
         <d_gain>0</d_gain>
         <i_max>0</i_max>
         <i_min>0</i_min>
-        <cmd_max>2.5</cmd_max>
-        <cmd_min>-2.5</cmd_min>
+        <cmd_max>8</cmd_max>
+        <cmd_min>-8</cmd_min>
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
 
@@ -258,8 +258,8 @@
         <d_gain>0</d_gain>
         <i_max>0</i_max>
         <i_min>0</i_min>
-        <cmd_max>2.5</cmd_max>
-        <cmd_min>-2.5</cmd_min>
+        <cmd_max>8</cmd_max>
+        <cmd_min>-8</cmd_min>
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
 
@@ -276,8 +276,8 @@
         <d_gain>0</d_gain>
         <i_max>0</i_max>
         <i_min>0</i_min>
-        <cmd_max>2.5</cmd_max>
-        <cmd_min>-2.5</cmd_min>
+        <cmd_max>8</cmd_max>
+        <cmd_min>-8</cmd_min>
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
 
