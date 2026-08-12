@@ -8,6 +8,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/traj_commander.py
+  scripts/evaluate_bag.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
