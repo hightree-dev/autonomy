@@ -40,6 +40,7 @@ class TrajCommander(Node):
         self.phase_t0 = None
         self.traj_t0 = None
         self.converge_t0 = None
+        self.land_decided = False
         self.pending = None
 
         self.create_subscription(State, "/mavros/state", self.on_state, 10)
@@ -159,24 +160,27 @@ class TrajCommander(Node):
             self.publish_setpoint(pos, vel, acc)
         elif self.phase == "hold":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
-            err = math.hypot(
-                self.pose.pose.position.x - self.origin[0],
-                self.pose.pose.position.y - self.origin[1],
-            )
-            if err < 0.3:
-                if self.converge_t0 is None:
-                    self.converge_t0 = self.now()
-            else:
-                self.converge_t0 = None
-            converged = (
-                self.converge_t0 is not None
-                and self.now() - self.converge_t0 > 2.0
-            )
-            timed_out = self.now() - self.phase_t0 > 30.0
-            if timed_out and not converged:
-                self.get_logger().warning(
-                    f"hold convergence timeout, landing at {err:.2f} m offset")
-            if converged or timed_out:
+            if not self.land_decided:
+                err = math.hypot(
+                    self.pose.pose.position.x - self.origin[0],
+                    self.pose.pose.position.y - self.origin[1],
+                )
+                if err < 0.3:
+                    if self.converge_t0 is None:
+                        self.converge_t0 = self.now()
+                else:
+                    self.converge_t0 = None
+                converged = (
+                    self.converge_t0 is not None
+                    and self.now() - self.converge_t0 > 2.0
+                )
+                if self.now() - self.phase_t0 > 30.0 and not converged:
+                    self.get_logger().warning(
+                        f"hold convergence timeout, landing at {err:.2f} m offset")
+                    self.land_decided = True
+                elif converged:
+                    self.land_decided = True
+            if self.land_decided:
                 if self.state.mode != "LAND":
                     self.call(self.mode_cli, SetMode.Request(custom_mode="LAND"))
                 else:
