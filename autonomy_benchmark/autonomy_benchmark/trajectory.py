@@ -37,6 +37,19 @@ def figure8(t, speed=2.0, radius=5.0, z=5.0):
 GENERATORS = {"line": line, "circle": circle, "figure8": figure8}
 
 
+def period(name, speed=2.0, size=None):
+    if name == "line":
+        half = (10.0 if size is None else size) / 2.0
+        return 2.0 * math.pi * half / speed
+    if name == "circle":
+        radius = 5.0 if size is None else size
+        return 2.0 * math.pi * radius / speed
+    if name == "figure8":
+        radius = 5.0 if size is None else size
+        return 4.0 * math.pi * radius / speed
+    raise ValueError(name)
+
+
 if __name__ == "__main__":
     dt = 1e-6
     for name, gen in GENERATORS.items():
@@ -51,4 +64,14 @@ if __name__ == "__main__":
     for name, gen in GENERATORS.items():
         p, v, a = gen(0.0)
         assert abs(p[0]) < 1e-9 and abs(p[1]) < 1e-9 and p[2] == 5.0
+    for name, gen in GENERATORS.items():
+        for speed, size in ((2.0, None), (4.0, 7.0)):
+            kwargs = {} if size is None else {
+                "length" if name == "line" else "radius": size}
+            T = period(name, speed, size)
+            p0, v0, _ = gen(0.0, speed, **kwargs)
+            p1, v1, _ = gen(T, speed, **kwargs)
+            for i in range(3):
+                assert abs(p1[i] - p0[i]) < 1e-6, (name, i, p0, p1)
+                assert abs(v1[i] - v0[i]) < 1e-6, (name, i, v0, v1)
     print("trajectory self-check ok")

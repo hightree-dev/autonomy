@@ -33,7 +33,7 @@ def launch_benchmark(context: LaunchContext):
     speed = LaunchConfiguration("speed").perform(context)
     size = LaunchConfiguration("size").perform(context)
     z = LaunchConfiguration("z").perform(context)
-    duration = LaunchConfiguration("duration").perform(context)
+    cycles = LaunchConfiguration("cycles").perform(context)
     bag_root = LaunchConfiguration("bag_root").perform(context)
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -50,7 +50,7 @@ def launch_benchmark(context: LaunchContext):
                 "speed": float(speed),
                 "size": float(size),
                 "z": float(z),
-                "duration": float(duration),
+                "cycles": int(cycles),
             }
         ],
     )
@@ -85,7 +85,7 @@ def generate_launch_description():
             DeclareLaunchArgument("speed", default_value="2.0"),
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("z", default_value="5.0"),
-            DeclareLaunchArgument("duration", default_value="60.0"),
+            DeclareLaunchArgument("cycles", default_value="4"),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
             mavros,
             OpaqueFunction(function=launch_benchmark),

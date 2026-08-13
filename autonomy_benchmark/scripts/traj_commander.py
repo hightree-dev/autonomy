@@ -8,7 +8,7 @@ from mavros_msgs.msg import PositionTarget, State
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
 from std_msgs.msg import String
 
-from autonomy_benchmark.trajectory import GENERATORS
+from autonomy_benchmark.trajectory import GENERATORS, period
 
 
 class TrajCommander(Node):
@@ -18,7 +18,7 @@ class TrajCommander(Node):
         self.declare_parameter("speed", 2.0)
         self.declare_parameter("size", 5.0)
         self.declare_parameter("z", 5.0)
-        self.declare_parameter("duration", 60.0)
+        self.declare_parameter("cycles", 4)
         self.declare_parameter("rate", 20.0)
         self.declare_parameter("settle_time", 5.0)
 
@@ -26,7 +26,8 @@ class TrajCommander(Node):
         self.speed = self.get_parameter("speed").value
         self.size = self.get_parameter("size").value
         self.z = self.get_parameter("z").value
-        self.duration = self.get_parameter("duration").value
+        cycles = self.get_parameter("cycles").value
+        self.duration = cycles * period(name, self.speed, self.size)
         self.settle_time = self.get_parameter("settle_time").value
         self.gen = GENERATORS[name]
 
