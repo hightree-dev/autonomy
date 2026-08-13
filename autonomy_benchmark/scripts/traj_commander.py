@@ -80,15 +80,12 @@ class TrajCommander(Node):
             self.pending = client.call_async(req)
         return None
 
-    def publish_setpoint(self, pos, vel):
+    def publish_setpoint(self, pos, vel, acc=(0.0, 0.0, 0.0)):
         sp = PositionTarget()
         sp.header.stamp = self.get_clock().now().to_msg()
         sp.coordinate_frame = PositionTarget.FRAME_LOCAL_NED
         sp.type_mask = (
-            PositionTarget.IGNORE_AFX
-            | PositionTarget.IGNORE_AFY
-            | PositionTarget.IGNORE_AFZ
-            | PositionTarget.IGNORE_YAW
+            PositionTarget.IGNORE_YAW
             | PositionTarget.IGNORE_YAW_RATE
         )
         sp.position.x = self.origin[0] + pos[0]
@@ -97,6 +94,9 @@ class TrajCommander(Node):
         sp.velocity.x = vel[0]
         sp.velocity.y = vel[1]
         sp.velocity.z = vel[2]
+        sp.acceleration_or_force.x = acc[0]
+        sp.acceleration_or_force.y = acc[1]
+        sp.acceleration_or_force.z = acc[2]
         self.sp_pub.publish(sp)
 
         ref = PoseStamped()
@@ -151,8 +151,8 @@ class TrajCommander(Node):
                 self.phase_t0 = self.now()
                 self.get_logger().info("tracking done")
                 return
-            pos, vel = self.gen(t, self.speed, self.size, self.z)
-            self.publish_setpoint(pos, vel)
+            pos, vel, acc = self.gen(t, self.speed, self.size, self.z)
+            self.publish_setpoint(pos, vel, acc)
         elif self.phase == "hold":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
             if self.now() - self.phase_t0 > 3.0:
