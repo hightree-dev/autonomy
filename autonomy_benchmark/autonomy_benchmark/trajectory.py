@@ -50,6 +50,27 @@ def period(name, speed=2.0, size=None):
     raise ValueError(name)
 
 
+def spinup_warp(t, t_spin):
+    if t >= t_spin:
+        return t - t_spin / 2.0, 1.0, 0.0
+    ratio = math.pi * t / t_spin
+    tau = (t - t_spin / math.pi * math.sin(ratio)) / 2.0
+    dtau = (1.0 - math.cos(ratio)) / 2.0
+    ddtau = math.pi / (2.0 * t_spin) * math.sin(ratio)
+    return tau, dtau, ddtau
+
+
+def sample(name, t, speed=2.0, size=5.0, z=5.0, t_spin=0.0):
+    gen = GENERATORS[name]
+    if t_spin <= 0.0:
+        return gen(t, speed, size, z)
+    tau, dtau, ddtau = spinup_warp(t, t_spin)
+    pos, vel, acc = gen(tau, speed, size, z)
+    warped_vel = tuple(v * dtau for v in vel)
+    warped_acc = tuple(a * dtau * dtau + v * ddtau for a, v in zip(acc, vel))
+    return pos, warped_vel, warped_acc
+
+
 if __name__ == "__main__":
     dt = 1e-6
     for name, gen in GENERATORS.items():
@@ -74,4 +95,22 @@ if __name__ == "__main__":
             for i in range(3):
                 assert abs(p1[i] - p0[i]) < 1e-6, (name, i, p0, p1)
                 assert abs(v1[i] - v0[i]) < 1e-6, (name, i, v0, v1)
+    t_spin = 7.0
+    for name in GENERATORS:
+        _, v0, a0 = sample(name, 0.0, 3.0, 5.0, 5.0, t_spin)
+        assert all(abs(x) < 1e-9 for x in v0), (name, v0)
+        assert all(abs(x) < 1e-9 for x in a0), (name, a0)
+        for t in (1.3, 4.1, t_spin - 1e-4, t_spin + 1e-4, 11.7):
+            p0, v0, a0 = sample(name, t, 3.0, 5.0, 5.0, t_spin)
+            p1, v1, _ = sample(name, t + dt, 3.0, 5.0, 5.0, t_spin)
+            for i in range(3):
+                num_v = (p1[i] - p0[i]) / dt
+                assert abs(num_v - v0[i]) < 1e-3, (name, t, i, num_v, v0[i])
+                num_a = (v1[i] - v0[i]) / dt
+                assert abs(num_a - a0[i]) < 1e-3, (name, t, i, num_a, a0[i])
+        lo = sample(name, t_spin - 1e-9, 3.0, 5.0, 5.0, t_spin)
+        hi = sample(name, t_spin + 1e-9, 3.0, 5.0, 5.0, t_spin)
+        for a, b in zip(lo, hi):
+            for i in range(3):
+                assert abs(a[i] - b[i]) < 1e-6, (name, a, b)
     print("trajectory self-check ok")
