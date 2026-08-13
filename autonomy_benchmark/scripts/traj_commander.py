@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import math
+
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
@@ -37,6 +39,7 @@ class TrajCommander(Node):
         self.phase = "wait"
         self.phase_t0 = None
         self.traj_t0 = None
+        self.converge_t0 = None
         self.pending = None
 
         self.create_subscription(State, "/mavros/state", self.on_state, 10)
@@ -156,7 +159,24 @@ class TrajCommander(Node):
             self.publish_setpoint(pos, vel, acc)
         elif self.phase == "hold":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
-            if self.now() - self.phase_t0 > 3.0:
+            err = math.hypot(
+                self.pose.pose.position.x - self.origin[0],
+                self.pose.pose.position.y - self.origin[1],
+            )
+            if err < 0.3:
+                if self.converge_t0 is None:
+                    self.converge_t0 = self.now()
+            else:
+                self.converge_t0 = None
+            converged = (
+                self.converge_t0 is not None
+                and self.now() - self.converge_t0 > 2.0
+            )
+            timed_out = self.now() - self.phase_t0 > 30.0
+            if timed_out and not converged:
+                self.get_logger().warning(
+                    f"hold convergence timeout, landing at {err:.2f} m offset")
+            if converged or timed_out:
                 if self.state.mode != "LAND":
                     self.call(self.mode_cli, SetMode.Request(custom_mode="LAND"))
                 else:
