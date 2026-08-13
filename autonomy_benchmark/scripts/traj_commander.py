@@ -10,7 +10,7 @@ from mavros_msgs.msg import PositionTarget, State
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
 from std_msgs.msg import String
 
-from autonomy_benchmark.trajectory import GENERATORS, period
+from autonomy_benchmark.trajectory import period, sample
 
 
 class TrajCommander(Node):
@@ -29,9 +29,10 @@ class TrajCommander(Node):
         self.size = self.get_parameter("size").value
         self.z = self.get_parameter("z").value
         cycles = self.get_parameter("cycles").value
-        self.duration = cycles * period(name, self.speed, self.size)
         self.settle_time = self.get_parameter("settle_time").value
-        self.gen = GENERATORS[name]
+        self.traj = name
+        self.t_spin = period(name, self.speed, self.size)
+        self.duration = cycles * self.t_spin
 
         self.state = None
         self.pose = None
@@ -146,17 +147,26 @@ class TrajCommander(Node):
         elif self.phase == "settle":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
             if self.now() - self.phase_t0 > self.settle_time:
-                self.set_phase("track")
+                self.set_phase("spinup")
                 self.traj_t0 = self.now()
+                self.get_logger().info("spinup start")
+        elif self.phase == "spinup":
+            t = self.now() - self.traj_t0
+            if t > self.t_spin:
+                self.set_phase("track")
                 self.get_logger().info("tracking start")
+            pos, vel, acc = sample(
+                self.traj, t, self.speed, self.size, self.z, self.t_spin)
+            self.publish_setpoint(pos, vel, acc)
         elif self.phase == "track":
             t = self.now() - self.traj_t0
-            if t > self.duration:
+            if t > self.t_spin / 2.0 + self.duration:
                 self.set_phase("hold")
                 self.phase_t0 = self.now()
                 self.get_logger().info("tracking done")
                 return
-            pos, vel, acc = self.gen(t, self.speed, self.size, self.z)
+            pos, vel, acc = sample(
+                self.traj, t, self.speed, self.size, self.z, self.t_spin)
             self.publish_setpoint(pos, vel, acc)
         elif self.phase == "hold":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
