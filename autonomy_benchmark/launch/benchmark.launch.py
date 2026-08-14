@@ -34,6 +34,7 @@ def launch_benchmark(context: LaunchContext):
     size = LaunchConfiguration("size").perform(context)
     z = LaunchConfiguration("z").perform(context)
     cycles = LaunchConfiguration("cycles").perform(context)
+    rate = LaunchConfiguration("rate").perform(context)
     land_after = LaunchConfiguration("land_after").perform(context).lower() == "true"
     settle_time = LaunchConfiguration("settle_time").perform(context)
     altitude_tolerance = LaunchConfiguration("altitude_tolerance").perform(context)
@@ -59,6 +60,7 @@ def launch_benchmark(context: LaunchContext):
                 "size": float(size),
                 "z": float(z),
                 "cycles": int(cycles),
+                "rate": float(rate),
                 "land_after": land_after,
                 "settle_time": float(settle_time),
                 "altitude_tolerance": float(altitude_tolerance),
@@ -102,6 +104,7 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
+            DeclareLaunchArgument("rate", default_value="100.0"),
             DeclareLaunchArgument("land_after", default_value="true"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
