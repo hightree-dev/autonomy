@@ -21,6 +21,7 @@ from launch_ros.actions import Node
 RECORD_TOPICS = [
     "/benchmark/reference",
     "/benchmark/phase",
+    "/benchmark/world_stats",
     "/mavros/state",
     "/mavros/local_position/pose",
     "/mavros/local_position/velocity_local",

@@ -98,6 +98,7 @@ def generate_robot_launch_actions(context: LaunchContext, *args, **kwargs):
             "Y": LaunchConfiguration("Y"),
             "instance": LaunchConfiguration("instance"),
             "sysid": LaunchConfiguration("sysid"),
+            "wipe": LaunchConfiguration("wipe"),
             "use_instance_dir": LaunchConfiguration("use_instance_dir"),
             "use_dds_agent": LaunchConfiguration("use_dds_agent"),
         }.items(),
@@ -179,6 +180,7 @@ def generate_launch_arguments() -> List[DeclareLaunchArgument]:
             default_value="",
             description="Set SYSID_THISMAV.",
         ),
+        DeclareLaunchArgument("wipe", default_value="False"),
         DeclareLaunchArgument(
             "use_instance_dir",
             default_value="False",

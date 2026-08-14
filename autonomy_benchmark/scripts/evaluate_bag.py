@@ -6,6 +6,7 @@ from rclpy.serialization import deserialize_message
 from rosbag2_py import ConverterOptions, SequentialReader, StorageOptions
 
 from geometry_msgs.msg import PoseStamped
+from ros_gz_interfaces.msg import WorldStatistics
 from std_msgs.msg import String
 
 
@@ -21,6 +22,7 @@ def read_bag(path):
     refs = []
     poses = []
     phases = []
+    stats = []
     while reader.has_next():
         topic, data, ts = reader.read_next()
         if topic == "/benchmark/reference":
@@ -29,7 +31,9 @@ def read_bag(path):
             poses.append((ts * 1e-9, deserialize_message(data, PoseStamped)))
         elif topic == "/benchmark/phase":
             phases.append((ts * 1e-9, deserialize_message(data, String).data))
-    return refs, poses, phases
+        elif topic == "/benchmark/world_stats":
+            stats.append((ts * 1e-9, deserialize_message(data, WorldStatistics)))
+    return refs, poses, phases, stats
 
 
 WINDOW_MARGIN = 0.25
@@ -129,7 +133,7 @@ def main():
     parser.add_argument("--report", default=None)
     args = parser.parse_args()
 
-    refs, poses, phases = read_bag(args.bag)
+    refs, poses, phases, stats = read_bag(args.bag)
     if not refs or not poses:
         raise SystemExit("missing reference or pose topic in bag")
     t_start, t_end = track_window(phases)
@@ -169,6 +173,9 @@ def main():
         f"pose rate: {sample_rate(poses, t_start, t_end):.1f} Hz",
         f"time lag: {estimate_time_lag(refs, poses, t_start, t_end):+.2f} s",
     ]
+    rtfs = [msg.real_time_factor for t, msg in stats if t_start <= t <= t_end]
+    if rtfs:
+        lines.append(f"real time factor: {sum(rtfs) / len(rtfs):.3f}")
     for label, idx in (("3d", 0), ("2d", 1), ("z", 2)):
         vals = [e[idx] for e in errors]
         rmse = math.sqrt(sum(v * v for v in vals) / n)

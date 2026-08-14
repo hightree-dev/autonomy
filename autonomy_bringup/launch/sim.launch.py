@@ -64,6 +64,7 @@ def generate_launch_description():
             "namespace": LaunchConfiguration("namespace"),
             "world_name": LaunchConfiguration("world"),
             "z": LaunchConfiguration("spawn_z"),
+            "wipe": LaunchConfiguration("wipe"),
         }.items(),
         condition=IfCondition(LaunchConfiguration("spawn_robot")),
     )
@@ -104,6 +105,7 @@ def generate_launch_description():
                 description="World name (worlds/<world>.sdf).",
             ),
             DeclareLaunchArgument("spawn_z", default_value="0.2"),
+            DeclareLaunchArgument("wipe", default_value="false"),
             DeclareLaunchArgument(
                 "use_gz_sim_server",
                 default_value="true",

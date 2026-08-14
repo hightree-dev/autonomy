@@ -57,6 +57,7 @@ def generate_launch_description():
         launch_arguments={
             "world": LaunchConfiguration("world"),
             "spawn_z": LaunchConfiguration("spawn_z"),
+            "wipe": LaunchConfiguration("wipe"),
             "use_gz_sim_gui": LaunchConfiguration("gui"),
             "rviz": LaunchConfiguration("rviz"),
         }.items(),
@@ -72,6 +73,7 @@ def generate_launch_description():
             "size": LaunchConfiguration("size"),
             "z": LaunchConfiguration("target_z"),
             "cycles": LaunchConfiguration("cycles"),
+            "rate": LaunchConfiguration("rate"),
             "settle_time": LaunchConfiguration("settle_time"),
             "altitude_tolerance": LaunchConfiguration("altitude_tolerance"),
             "vertical_speed_tolerance": LaunchConfiguration(
@@ -95,6 +97,8 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("target_z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
+            DeclareLaunchArgument("rate", default_value="100.0"),
+            DeclareLaunchArgument("wipe", default_value="false"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
             DeclareLaunchArgument(
