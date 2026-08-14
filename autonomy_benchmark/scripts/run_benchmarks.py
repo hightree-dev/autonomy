@@ -8,7 +8,8 @@ import subprocess
 import time
 
 import rclpy
-from mavros_msgs.srv import ParamGet
+from rcl_interfaces.msg import ParameterType
+from rcl_interfaces.srv import GetParameters
 
 
 PARAM_NAMES = ("WP_ACC", "WP_SPD", "WP_JERK", "ATC_ANGLE_MAX")
@@ -52,7 +53,7 @@ def run(arguments, run_id):
 def read_fcu_params(process, timeout=60.0):
     rclpy.init()
     node = rclpy.create_node(f"benchmark_params_{os.getpid()}")
-    client = node.create_client(ParamGet, "/mavros/param/get")
+    client = node.create_client(GetParameters, "/mavros/param/get_parameters")
     try:
         deadline = time.monotonic() + timeout
         while not client.wait_for_service(timeout_sec=0.5):
@@ -61,16 +62,21 @@ def read_fcu_params(process, timeout=60.0):
                 raise subprocess.CalledProcessError(returncode, process.args)
             if time.monotonic() >= deadline:
                 raise TimeoutError("FCU parameter service unavailable")
+        request = GetParameters.Request()
+        request.names = list(PARAM_NAMES)
+        future = client.call_async(request)
+        rclpy.spin_until_future_complete(node, future, timeout_sec=timeout)
+        response = future.result()
+        if response is None or len(response.values) != len(PARAM_NAMES):
+            raise RuntimeError("failed to read FCU parameters")
         values = {}
-        for name in PARAM_NAMES:
-            request = ParamGet.Request()
-            request.param_id = name
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(node, future, timeout_sec=timeout)
-            response = future.result()
-            if response is None or not response.success:
-                raise RuntimeError(f"failed to read FCU parameter {name}")
-            values[name] = response.value.real or response.value.integer
+        for name, value in zip(PARAM_NAMES, response.values):
+            if value.type == ParameterType.PARAMETER_DOUBLE:
+                values[name] = value.double_value
+            elif value.type == ParameterType.PARAMETER_INTEGER:
+                values[name] = value.integer_value
+            else:
+                raise RuntimeError(f"invalid FCU parameter {name}")
         return values
     finally:
         node.destroy_node()
