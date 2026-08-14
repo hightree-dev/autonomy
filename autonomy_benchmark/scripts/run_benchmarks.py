@@ -62,22 +62,20 @@ def read_fcu_params(process, timeout=60.0):
                 raise subprocess.CalledProcessError(returncode, process.args)
             if time.monotonic() >= deadline:
                 raise TimeoutError("FCU parameter service unavailable")
-        request = GetParameters.Request()
-        request.names = list(PARAM_NAMES)
-        future = client.call_async(request)
-        rclpy.spin_until_future_complete(node, future, timeout_sec=timeout)
-        response = future.result()
-        if response is None or len(response.values) != len(PARAM_NAMES):
-            raise RuntimeError("failed to read FCU parameters")
-        values = {}
-        for name, value in zip(PARAM_NAMES, response.values):
-            if value.type == ParameterType.PARAMETER_DOUBLE:
-                values[name] = value.double_value
-            elif value.type == ParameterType.PARAMETER_INTEGER:
-                values[name] = value.integer_value
-            else:
-                raise RuntimeError(f"invalid FCU parameter {name}")
-        return values
+        while time.monotonic() < deadline:
+            request = GetParameters.Request()
+            request.names = list(PARAM_NAMES)
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(node, future, timeout_sec=1.0)
+            response = future.result()
+            values = parameter_values(response.values) if response else None
+            if values is not None:
+                return values
+            returncode = process.poll()
+            if returncode is not None:
+                raise subprocess.CalledProcessError(returncode, process.args)
+            time.sleep(0.5)
+        raise TimeoutError("FCU parameters unavailable")
     finally:
         node.destroy_node()
         if rclpy.ok():
@@ -88,6 +86,20 @@ def git_sha(path):
     return subprocess.check_output(
         ["git", "-C", path, "rev-parse", "HEAD"], text=True
     ).strip()
+
+
+def parameter_values(values):
+    if len(values) != len(PARAM_NAMES):
+        return None
+    result = {}
+    for name, value in zip(PARAM_NAMES, values):
+        if value.type == ParameterType.PARAMETER_DOUBLE:
+            result[name] = value.double_value
+        elif value.type == ParameterType.PARAMETER_INTEGER:
+            result[name] = value.integer_value
+        else:
+            return None
+    return result
 
 
 def write_manifest(path, data):

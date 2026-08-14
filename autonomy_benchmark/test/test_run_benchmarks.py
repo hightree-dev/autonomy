@@ -12,6 +12,15 @@ SPEC.loader.exec_module(MODULE)
 
 
 class TestRunBenchmarks(unittest.TestCase):
+    def test_parameter_values_waits_for_valid_types(self):
+        invalid = [Mock(type=MODULE.ParameterType.PARAMETER_NOT_SET)] * 4
+        self.assertIsNone(MODULE.parameter_values(invalid))
+        valid = [
+            Mock(type=MODULE.ParameterType.PARAMETER_DOUBLE, double_value=value)
+            for value in MODULE.EXPECTED_PARAMS.values()
+        ]
+        self.assertEqual(MODULE.parameter_values(valid), MODULE.EXPECTED_PARAMS)
+
     def test_command_appends_run_id(self):
         self.assertEqual(
             MODULE.command(["speed:=4.0"], 3),
