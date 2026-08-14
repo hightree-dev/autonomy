@@ -21,7 +21,7 @@ class TrajCommander(Node):
         self.declare_parameter("size", 5.0)
         self.declare_parameter("z", 5.0)
         self.declare_parameter("cycles", 4)
-        self.declare_parameter("rate", 20.0)
+        self.declare_parameter("rate", 100.0)
         self.declare_parameter("settle_time", 5.0)
 
         name = self.get_parameter("traj").value
