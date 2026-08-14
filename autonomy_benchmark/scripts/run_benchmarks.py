@@ -164,6 +164,8 @@ def comparison(args):
             }
         )
         write_manifest(manifest_path, manifest)
+    if any(run["status"] == "failed" for run in manifest["runs"]):
+        raise SystemExit("one or more benchmark runs failed")
 
 
 def main():
