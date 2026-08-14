@@ -52,6 +52,22 @@ def track_window(phases):
     return t_start + WINDOW_MARGIN, t_end - WINDOW_MARGIN
 
 
+def phase_durations(phases):
+    durations = []
+    start = None
+    current = None
+    for t, phase in phases:
+        if phase == current:
+            continue
+        if current is not None:
+            durations.append((current, t - start))
+        current = phase
+        start = t
+    if current is not None:
+        durations.append((current, phases[-1][0] - start))
+    return durations
+
+
 def interp_ref(refs, t):
     lo, hi = 0, len(refs) - 1
     while lo < hi:
@@ -106,6 +122,12 @@ def main():
     n = len(errors)
     lines = [
         f"bag: {args.bag}",
+        f"benchmark duration: {phases[-1][0] - phases[0][0]:.1f} s",
+        "phases: "
+        + ", ".join(
+            f"{phase} {duration:.2f} s"
+            for phase, duration in phase_durations(phases)
+        ),
         f"track window: {t_end - t_start:.1f} s, samples: {n}",
     ]
     for label, idx in (("3d", 0), ("2d", 1), ("z", 2)):

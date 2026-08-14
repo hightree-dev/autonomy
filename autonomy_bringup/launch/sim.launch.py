@@ -63,6 +63,7 @@ def generate_launch_description():
         launch_arguments={
             "namespace": LaunchConfiguration("namespace"),
             "world_name": LaunchConfiguration("world"),
+            "z": LaunchConfiguration("spawn_z"),
         }.items(),
         condition=IfCondition(LaunchConfiguration("spawn_robot")),
     )
@@ -102,6 +103,7 @@ def generate_launch_description():
                 default_value="maze",
                 description="World name (worlds/<world>.sdf).",
             ),
+            DeclareLaunchArgument("spawn_z", default_value="0.2"),
             DeclareLaunchArgument(
                 "use_gz_sim_server",
                 default_value="true",
