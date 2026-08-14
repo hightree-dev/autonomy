@@ -41,9 +41,11 @@ def launch_benchmark(context: LaunchContext):
         "vertical_speed_tolerance"
     ).perform(context)
     bag_root = LaunchConfiguration("bag_root").perform(context)
+    run_id = LaunchConfiguration("run_id").perform(context)
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    bag_path = os.path.join(bag_root, f"{traj}_v{speed}_{stamp}")
+    suffix = f"_r{run_id}" if run_id else ""
+    bag_path = os.path.join(bag_root, f"{traj}_v{speed}_{stamp}{suffix}")
 
     commander = Node(
         package="autonomy_benchmark",
@@ -107,6 +109,7 @@ def generate_launch_description():
                 "vertical_speed_tolerance", default_value="0.1"
             ),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
+            DeclareLaunchArgument("run_id", default_value=""),
             DeclareLaunchArgument("fcu_url", default_value="udp://:14551@"),
             mavros,
             OpaqueFunction(function=launch_benchmark),

@@ -65,6 +65,7 @@ def generate_launch_description():
                 "vertical_speed_tolerance"
             ),
             "bag_root": LaunchConfiguration("bag_root"),
+            "run_id": LaunchConfiguration("run_id"),
             "land_after": "false",
             "fcu_url": LaunchConfiguration("fcu_url"),
         }.items(),
@@ -87,6 +88,7 @@ def generate_launch_description():
                 "vertical_speed_tolerance", default_value="0.1"
             ),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
+            DeclareLaunchArgument("run_id", default_value=""),
             OpaqueFunction(function=check_ports),
             sim,
             run,
