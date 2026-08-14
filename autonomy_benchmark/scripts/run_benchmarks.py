@@ -36,9 +36,14 @@ def run(arguments, run_id):
         returncode = process.wait()
     finally:
         try:
-            os.killpg(process.pid, signal.SIGTERM)
+            os.killpg(process.pid, signal.SIGINT)
         except ProcessLookupError:
             pass
+        if process.poll() is None:
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGTERM)
     if returncode:
         raise subprocess.CalledProcessError(returncode, process.args)
     return params
@@ -69,7 +74,8 @@ def read_fcu_params(process, timeout=60.0):
         return values
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 def git_sha(path):
@@ -107,7 +113,7 @@ def comparison(args):
                     "cycles:=4",
                     "target_z:=2.0",
                     "wipe:=True",
-                    f"rate:={rate}",
+                    f"reference_rate:={rate}",
                     f"bag_root:={bag_root}",
                 ],
                 index,

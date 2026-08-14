@@ -36,7 +36,7 @@ class TestRunBenchmarks(unittest.TestCase):
             self.assertEqual(MODULE.run([], 1), MODULE.EXPECTED_PARAMS)
         popen.assert_called_once_with(MODULE.command([], 1), start_new_session=True)
         read_params.assert_called_once_with(process)
-        killpg.assert_called_once_with(42, signal.SIGTERM)
+        killpg.assert_called_once_with(42, signal.SIGINT)
 
     def test_rate_order_is_balanced(self):
         self.assertEqual(MODULE.RATE_ORDER.count(20), 5)

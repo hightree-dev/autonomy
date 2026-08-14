@@ -73,7 +73,7 @@ def generate_launch_description():
             "size": LaunchConfiguration("size"),
             "z": LaunchConfiguration("target_z"),
             "cycles": LaunchConfiguration("cycles"),
-            "rate": LaunchConfiguration("rate"),
+            "reference_rate": LaunchConfiguration("reference_rate"),
             "settle_time": LaunchConfiguration("settle_time"),
             "altitude_tolerance": LaunchConfiguration("altitude_tolerance"),
             "vertical_speed_tolerance": LaunchConfiguration(
@@ -97,7 +97,7 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("target_z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
-            DeclareLaunchArgument("rate", default_value="100.0"),
+            DeclareLaunchArgument("reference_rate", default_value="100.0"),
             DeclareLaunchArgument("wipe", default_value="False"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
