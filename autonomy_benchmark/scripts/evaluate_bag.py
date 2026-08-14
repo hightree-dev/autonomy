@@ -68,6 +68,13 @@ def phase_durations(phases):
     return durations
 
 
+def sample_rate(messages, t_start, t_end):
+    times = [t for t, _ in messages if t_start <= t <= t_end]
+    if len(times) < 2 or times[-1] == times[0]:
+        return 0.0
+    return (len(times) - 1) / (times[-1] - times[0])
+
+
 def interp_ref(refs, t):
     lo, hi = 0, len(refs) - 1
     while lo < hi:
@@ -129,6 +136,8 @@ def main():
             for phase, duration in phase_durations(phases)
         ),
         f"track window: {t_end - t_start:.1f} s, samples: {n}",
+        f"reference rate: {sample_rate(refs, t_start, t_end):.1f} Hz",
+        f"pose rate: {sample_rate(poses, t_start, t_end):.1f} Hz",
     ]
     for label, idx in (("3d", 0), ("2d", 1), ("z", 2)):
         vals = [e[idx] for e in errors]
