@@ -34,6 +34,11 @@ def launch_benchmark(context: LaunchContext):
     size = LaunchConfiguration("size").perform(context)
     z = LaunchConfiguration("z").perform(context)
     cycles = LaunchConfiguration("cycles").perform(context)
+    settle_time = LaunchConfiguration("settle_time").perform(context)
+    altitude_tolerance = LaunchConfiguration("altitude_tolerance").perform(context)
+    vertical_speed_tolerance = LaunchConfiguration(
+        "vertical_speed_tolerance"
+    ).perform(context)
     bag_root = LaunchConfiguration("bag_root").perform(context)
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -51,6 +56,9 @@ def launch_benchmark(context: LaunchContext):
                 "size": float(size),
                 "z": float(z),
                 "cycles": int(cycles),
+                "settle_time": float(settle_time),
+                "altitude_tolerance": float(altitude_tolerance),
+                "vertical_speed_tolerance": float(vertical_speed_tolerance),
             }
         ],
     )
@@ -86,6 +94,11 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
+            DeclareLaunchArgument("settle_time", default_value="1.0"),
+            DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
+            DeclareLaunchArgument(
+                "vertical_speed_tolerance", default_value="0.1"
+            ),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
             mavros,
             OpaqueFunction(function=launch_benchmark),

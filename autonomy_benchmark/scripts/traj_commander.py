@@ -5,11 +5,12 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.msg import PositionTarget, State
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
 from std_msgs.msg import String
 
+from autonomy_benchmark.readiness import stable
 from autonomy_benchmark.trajectory import period, sample
 
 
@@ -22,7 +23,9 @@ class TrajCommander(Node):
         self.declare_parameter("z", 2.0)
         self.declare_parameter("cycles", 4)
         self.declare_parameter("rate", 100.0)
-        self.declare_parameter("settle_time", 5.0)
+        self.declare_parameter("settle_time", 1.0)
+        self.declare_parameter("altitude_tolerance", 0.1)
+        self.declare_parameter("vertical_speed_tolerance", 0.1)
 
         name = self.get_parameter("traj").value
         self.speed = self.get_parameter("speed").value
@@ -30,15 +33,21 @@ class TrajCommander(Node):
         self.z = self.get_parameter("z").value
         cycles = self.get_parameter("cycles").value
         self.settle_time = self.get_parameter("settle_time").value
+        self.altitude_tolerance = self.get_parameter("altitude_tolerance").value
+        self.vertical_speed_tolerance = self.get_parameter(
+            "vertical_speed_tolerance"
+        ).value
         self.traj = name
         self.t_spin = period(name, self.speed, self.size)
         self.duration = cycles * self.t_spin
 
         self.state = None
         self.pose = None
+        self.velocity = None
         self.origin = None
         self.phase = "wait"
         self.phase_t0 = None
+        self.stable_t0 = None
         self.traj_t0 = None
         self.converge_t0 = None
         self.land_decided = False
@@ -49,6 +58,12 @@ class TrajCommander(Node):
             PoseStamped,
             "/mavros/local_position/pose",
             self.on_pose,
+            qos_profile_sensor_data,
+        )
+        self.create_subscription(
+            TwistStamped,
+            "/mavros/local_position/velocity_local",
+            self.on_velocity,
             qos_profile_sensor_data,
         )
         self.sp_pub = self.create_publisher(
@@ -71,6 +86,9 @@ class TrajCommander(Node):
 
     def on_pose(self, msg):
         self.pose = msg
+
+    def on_velocity(self, msg):
+        self.velocity = msg
 
     def now(self):
         return self.get_clock().now().nanoseconds * 1e-9
@@ -142,11 +160,29 @@ class TrajCommander(Node):
             if self.pose.pose.position.z > self.z * 0.95:
                 self.origin = (self.pose.pose.position.x, self.pose.pose.position.y)
                 self.set_phase("settle")
-                self.phase_t0 = self.now()
                 self.get_logger().info(f"origin: {self.origin}")
         elif self.phase == "settle":
             self.publish_setpoint((0.0, 0.0, self.z), (0.0, 0.0, 0.0))
-            if self.now() - self.phase_t0 > self.settle_time:
+            ready = (
+                self.state.armed
+                and self.state.mode == "GUIDED"
+                and self.velocity is not None
+                and stable(
+                    self.pose.pose.position.z,
+                    self.velocity.twist.linear.z,
+                    self.z,
+                    self.altitude_tolerance,
+                    self.vertical_speed_tolerance,
+                )
+            )
+            if ready and self.stable_t0 is None:
+                self.stable_t0 = self.now()
+            elif not ready:
+                self.stable_t0 = None
+            if (
+                self.stable_t0 is not None
+                and self.now() - self.stable_t0 > self.settle_time
+            ):
                 self.set_phase("spinup")
                 self.traj_t0 = self.now()
                 self.get_logger().info("spinup start")
