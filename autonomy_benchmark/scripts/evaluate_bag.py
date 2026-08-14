@@ -89,10 +89,18 @@ def interp_ref(refs, t):
     a = 0.0 if t1 == t0 else min(1.0, max(0.0, (t - t0) / (t1 - t0)))
     p0 = m0.pose.position
     p1 = m1.pose.position
+    tx = p1.x - p0.x
+    ty = p1.y - p0.y
+    tangent_norm = math.hypot(tx, ty)
+    if tangent_norm > 0.0:
+        tx /= tangent_norm
+        ty /= tangent_norm
     return (
         p0.x + a * (p1.x - p0.x),
         p0.y + a * (p1.y - p0.y),
         p0.z + a * (p1.z - p0.z),
+        tx,
+        ty,
     )
 
 
@@ -111,7 +119,7 @@ def main():
     for t, msg in poses:
         if t < t_start or t > t_end:
             continue
-        rx, ry, rz = interp_ref(refs, t)
+        rx, ry, rz, tx, ty = interp_ref(refs, t)
         dx = msg.pose.position.x - rx
         dy = msg.pose.position.y - ry
         dz = msg.pose.position.z - rz
@@ -120,6 +128,8 @@ def main():
                 math.sqrt(dx * dx + dy * dy + dz * dz),
                 math.sqrt(dx * dx + dy * dy),
                 abs(dz),
+                dx * ty - dy * tx,
+                dx * tx + dy * ty,
             )
         )
 
@@ -145,6 +155,15 @@ def main():
         p95 = sorted(vals)[math.ceil(0.95 * n) - 1]
         lines.append(
             f"{label}: rmse {rmse:.3f} m, p95 {p95:.3f} m, max {max(vals):.3f} m, "
+            f"mean {sum(vals) / n:.3f} m"
+        )
+    for label, idx in (("radial", 3), ("tangential", 4)):
+        vals = [e[idx] for e in errors]
+        abs_vals = sorted(abs(v) for v in vals)
+        rmse = math.sqrt(sum(v * v for v in vals) / n)
+        p95 = abs_vals[math.ceil(0.95 * n) - 1]
+        lines.append(
+            f"{label}: rmse {rmse:.3f} m, p95 {p95:.3f} m, max {max(abs_vals):.3f} m, "
             f"mean {sum(vals) / n:.3f} m"
         )
     text = "\n".join(lines)
