@@ -142,8 +142,9 @@ def main():
     for label, idx in (("3d", 0), ("2d", 1), ("z", 2)):
         vals = [e[idx] for e in errors]
         rmse = math.sqrt(sum(v * v for v in vals) / n)
+        p95 = sorted(vals)[math.ceil(0.95 * n) - 1]
         lines.append(
-            f"{label}: rmse {rmse:.3f} m, max {max(vals):.3f} m, "
+            f"{label}: rmse {rmse:.3f} m, p95 {p95:.3f} m, max {max(vals):.3f} m, "
             f"mean {sum(vals) / n:.3f} m"
         )
     text = "\n".join(lines)
