@@ -24,6 +24,8 @@ def check_ports(_context: LaunchContext):
     ]
     for kind, port in ports:
         sock = socket.socket(socket.AF_INET, kind)
+        if kind == socket.SOCK_STREAM:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind(("0.0.0.0", port))
         except OSError as exc:
