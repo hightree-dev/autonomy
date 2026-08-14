@@ -1,5 +1,6 @@
 import os
 import socket
+import time
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchContext, LaunchDescription
@@ -13,6 +14,24 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
 
+def wait_for_port(kind, port, timeout=15.0):
+    deadline = time.monotonic() + timeout
+    while True:
+        sock = socket.socket(socket.AF_INET, kind)
+        if kind == socket.SOCK_STREAM:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("0.0.0.0", port))
+        except OSError as exc:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(f"port {port} unavailable") from exc
+        else:
+            return
+        finally:
+            sock.close()
+        time.sleep(0.1)
+
+
 def check_ports(_context: LaunchContext):
     ports = [
         (socket.SOCK_STREAM, 5760),
@@ -23,15 +42,7 @@ def check_ports(_context: LaunchContext):
         (socket.SOCK_DGRAM, 14551),
     ]
     for kind, port in ports:
-        sock = socket.socket(socket.AF_INET, kind)
-        if kind == socket.SOCK_STREAM:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            sock.bind(("0.0.0.0", port))
-        except OSError as exc:
-            raise RuntimeError(f"port {port} unavailable") from exc
-        finally:
-            sock.close()
+        wait_for_port(kind, port)
     return [SetLaunchConfiguration("fcu_url", "udp://:14550@")]
 
 
