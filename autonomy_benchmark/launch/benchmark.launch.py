@@ -34,6 +34,7 @@ def launch_benchmark(context: LaunchContext):
     size = LaunchConfiguration("size").perform(context)
     z = LaunchConfiguration("z").perform(context)
     cycles = LaunchConfiguration("cycles").perform(context)
+    land_after = LaunchConfiguration("land_after").perform(context).lower() == "true"
     settle_time = LaunchConfiguration("settle_time").perform(context)
     altitude_tolerance = LaunchConfiguration("altitude_tolerance").perform(context)
     vertical_speed_tolerance = LaunchConfiguration(
@@ -56,6 +57,7 @@ def launch_benchmark(context: LaunchContext):
                 "size": float(size),
                 "z": float(z),
                 "cycles": int(cycles),
+                "land_after": land_after,
                 "settle_time": float(settle_time),
                 "altitude_tolerance": float(altitude_tolerance),
                 "vertical_speed_tolerance": float(vertical_speed_tolerance),
@@ -84,7 +86,11 @@ def generate_launch_description():
     mavros = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_autonomy_bringup, "launch", "mavros.launch.py")
-        )
+        ),
+        launch_arguments={
+            "fcu_url": LaunchConfiguration("fcu_url"),
+            "namespace": "mavros",
+        }.items(),
     )
 
     return LaunchDescription(
@@ -94,12 +100,14 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
+            DeclareLaunchArgument("land_after", default_value="true"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
             DeclareLaunchArgument(
                 "vertical_speed_tolerance", default_value="0.1"
             ),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
+            DeclareLaunchArgument("fcu_url", default_value="udp://:14551@"),
             mavros,
             OpaqueFunction(function=launch_benchmark),
         ]

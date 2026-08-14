@@ -22,6 +22,7 @@ class TrajCommander(Node):
         self.declare_parameter("size", 5.0)
         self.declare_parameter("z", 2.0)
         self.declare_parameter("cycles", 4)
+        self.declare_parameter("land_after", True)
         self.declare_parameter("rate", 100.0)
         self.declare_parameter("settle_time", 1.0)
         self.declare_parameter("altitude_tolerance", 0.1)
@@ -32,6 +33,7 @@ class TrajCommander(Node):
         self.size = self.get_parameter("size").value
         self.z = self.get_parameter("z").value
         cycles = self.get_parameter("cycles").value
+        self.land_after = self.get_parameter("land_after").value
         self.settle_time = self.get_parameter("settle_time").value
         self.altitude_tolerance = self.get_parameter("altitude_tolerance").value
         self.vertical_speed_tolerance = self.get_parameter(
@@ -197,8 +199,9 @@ class TrajCommander(Node):
         elif self.phase == "track":
             t = self.now() - self.traj_t0
             if t > self.t_spin / 2.0 + self.duration:
-                self.set_phase("hold")
-                self.phase_t0 = self.now()
+                self.set_phase("hold" if self.land_after else "done")
+                if self.land_after:
+                    self.phase_t0 = self.now()
                 self.get_logger().info("tracking done")
                 return
             pos, vel, acc = sample(
@@ -233,7 +236,7 @@ class TrajCommander(Node):
                     self.set_phase("done")
                     self.get_logger().info("landing")
         elif self.phase == "done":
-            if self.state and not self.state.armed:
+            if not self.land_after or (self.state and not self.state.armed):
                 self.get_logger().info("benchmark finished")
                 raise SystemExit
 
