@@ -46,7 +46,9 @@ def launch_benchmark(context: LaunchContext):
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     suffix = f"_r{run_id}" if run_id else ""
-    bag_path = os.path.join(bag_root, f"{traj}_v{speed}_{stamp}{suffix}")
+    bag_path = os.path.join(
+        bag_root, f"{traj}_v{speed}_r{rate}_{stamp}{suffix}"
+    )
 
     commander = Node(
         package="autonomy_benchmark",
