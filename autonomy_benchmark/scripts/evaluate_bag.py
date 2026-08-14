@@ -104,6 +104,25 @@ def interp_ref(refs, t):
     )
 
 
+def estimate_time_lag(refs, poses, t_start, t_end):
+    best_lag = 0.0
+    best_error = math.inf
+    for centiseconds in range(-100, 101):
+        lag = centiseconds / 100.0
+        squared_errors = []
+        for t, msg in poses:
+            if t_start <= t <= t_end:
+                rx, ry, _, _, _ = interp_ref(refs, t - lag)
+                dx = msg.pose.position.x - rx
+                dy = msg.pose.position.y - ry
+                squared_errors.append(dx * dx + dy * dy)
+        mean_error = sum(squared_errors) / len(squared_errors)
+        if mean_error < best_error:
+            best_error = mean_error
+            best_lag = lag
+    return best_lag
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("bag")
@@ -148,6 +167,7 @@ def main():
         f"track window: {t_end - t_start:.1f} s, samples: {n}",
         f"reference rate: {sample_rate(refs, t_start, t_end):.1f} Hz",
         f"pose rate: {sample_rate(poses, t_start, t_end):.1f} Hz",
+        f"time lag: {estimate_time_lag(refs, poses, t_start, t_end):+.2f} s",
     ]
     for label, idx in (("3d", 0), ("2d", 1), ("z", 2)):
         vals = [e[idx] for e in errors]
