@@ -105,7 +105,7 @@ def generate_launch_description():
                 description="World name (worlds/<world>.sdf).",
             ),
             DeclareLaunchArgument("spawn_z", default_value="0.2"),
-            DeclareLaunchArgument("wipe", default_value="false"),
+            DeclareLaunchArgument("wipe", default_value="False"),
             DeclareLaunchArgument(
                 "use_gz_sim_server",
                 default_value="true",

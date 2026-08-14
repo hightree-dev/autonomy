@@ -98,7 +98,7 @@ def generate_launch_description():
             DeclareLaunchArgument("target_z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
             DeclareLaunchArgument("rate", default_value="100.0"),
-            DeclareLaunchArgument("wipe", default_value="false"),
+            DeclareLaunchArgument("wipe", default_value="False"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
             DeclareLaunchArgument(

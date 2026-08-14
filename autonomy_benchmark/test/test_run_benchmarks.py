@@ -32,9 +32,10 @@ class TestRunBenchmarks(unittest.TestCase):
             MODULE.subprocess, "Popen", return_value=process
         ) as popen, patch.object(
             MODULE, "read_fcu_params", return_value=MODULE.EXPECTED_PARAMS
-        ), patch.object(MODULE.os, "killpg") as killpg:
+        ) as read_params, patch.object(MODULE.os, "killpg") as killpg:
             self.assertEqual(MODULE.run([], 1), MODULE.EXPECTED_PARAMS)
         popen.assert_called_once_with(MODULE.command([], 1), start_new_session=True)
+        read_params.assert_called_once_with(process)
         killpg.assert_called_once_with(42, signal.SIGTERM)
 
     def test_rate_order_is_balanced(self):

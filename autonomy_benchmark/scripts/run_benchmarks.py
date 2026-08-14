@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import time
 
 import rclpy
 from mavros_msgs.srv import ParamGet
@@ -29,7 +30,7 @@ def command(arguments, run_id):
 def run(arguments, run_id):
     process = subprocess.Popen(command(arguments, run_id), start_new_session=True)
     try:
-        params = read_fcu_params()
+        params = read_fcu_params(process)
         if params != EXPECTED_PARAMS:
             raise RuntimeError(f"unexpected FCU parameters: {params}")
         returncode = process.wait()
@@ -43,13 +44,18 @@ def run(arguments, run_id):
     return params
 
 
-def read_fcu_params(timeout=60.0):
+def read_fcu_params(process, timeout=60.0):
     rclpy.init()
     node = rclpy.create_node(f"benchmark_params_{os.getpid()}")
     client = node.create_client(ParamGet, "/mavros/param/get")
     try:
-        if not client.wait_for_service(timeout_sec=timeout):
-            raise TimeoutError("FCU parameter service unavailable")
+        deadline = time.monotonic() + timeout
+        while not client.wait_for_service(timeout_sec=0.5):
+            returncode = process.poll()
+            if returncode is not None:
+                raise subprocess.CalledProcessError(returncode, process.args)
+            if time.monotonic() >= deadline:
+                raise TimeoutError("FCU parameter service unavailable")
         values = {}
         for name in PARAM_NAMES:
             request = ParamGet.Request()
@@ -100,7 +106,7 @@ def comparison(args):
                     "size:=5.0",
                     "cycles:=4",
                     "target_z:=2.0",
-                    "wipe:=true",
+                    "wipe:=True",
                     f"rate:={rate}",
                     f"bag_root:={bag_root}",
                 ],
