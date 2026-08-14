@@ -198,7 +198,7 @@ class TrajCommander(Node):
             self.publish_setpoint(pos, vel, acc)
         elif self.phase == "track":
             t = self.now() - self.traj_t0
-            if t > self.t_spin / 2.0 + self.duration:
+            if t > self.t_spin + self.duration:
                 self.set_phase("hold" if self.land_after else "done")
                 if self.land_after:
                     self.phase_t0 = self.now()

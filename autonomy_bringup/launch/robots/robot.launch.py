@@ -198,7 +198,7 @@ def launch_sitl_dds(context: LaunchContext) -> List[LaunchDescriptionEntity]:
     # ardupilot_sitl
     sitl_arguments = {
       "command": command,
-      "wipe": "False",
+      "wipe": LaunchConfiguration("wipe"),
       "speedup": "1",
       "slave": "0",
       "instance": f"{instance}",
@@ -319,6 +319,7 @@ def generate_launch_arguments() -> List[LaunchDescriptionEntity]:
             default_value="",
             description="Set SYSID_THISMAV.",
         ),
+        DeclareLaunchArgument("wipe", default_value="False"),
         DeclareLaunchArgument(
             "use_instance_dir",
             default_value="False",

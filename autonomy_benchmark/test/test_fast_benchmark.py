@@ -12,6 +12,9 @@ SPEC.loader.exec_module(MODULE)
 
 
 class TestFastBenchmark(unittest.TestCase):
+    def test_reference_rate_does_not_override_sitl_rate(self):
+        self.assertNotIn('LaunchConfiguration("rate")', PATH.read_text())
+
     def test_wait_for_port_retries(self):
         sock = Mock()
         sock.bind.side_effect = [OSError(), None]

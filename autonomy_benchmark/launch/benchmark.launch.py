@@ -21,6 +21,7 @@ from launch_ros.actions import Node
 RECORD_TOPICS = [
     "/benchmark/reference",
     "/benchmark/phase",
+    "/benchmark/world_stats",
     "/mavros/state",
     "/mavros/local_position/pose",
     "/mavros/local_position/velocity_local",
@@ -34,6 +35,7 @@ def launch_benchmark(context: LaunchContext):
     size = LaunchConfiguration("size").perform(context)
     z = LaunchConfiguration("z").perform(context)
     cycles = LaunchConfiguration("cycles").perform(context)
+    rate = LaunchConfiguration("reference_rate").perform(context)
     land_after = LaunchConfiguration("land_after").perform(context).lower() == "true"
     settle_time = LaunchConfiguration("settle_time").perform(context)
     altitude_tolerance = LaunchConfiguration("altitude_tolerance").perform(context)
@@ -45,7 +47,9 @@ def launch_benchmark(context: LaunchContext):
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     suffix = f"_r{run_id}" if run_id else ""
-    bag_path = os.path.join(bag_root, f"{traj}_v{speed}_{stamp}{suffix}")
+    bag_path = os.path.join(
+        bag_root, f"{traj}_v{speed}_r{rate}_{stamp}{suffix}"
+    )
 
     commander = Node(
         package="autonomy_benchmark",
@@ -59,6 +63,7 @@ def launch_benchmark(context: LaunchContext):
                 "size": float(size),
                 "z": float(z),
                 "cycles": int(cycles),
+                "rate": float(rate),
                 "land_after": land_after,
                 "settle_time": float(settle_time),
                 "altitude_tolerance": float(altitude_tolerance),
@@ -102,6 +107,7 @@ def generate_launch_description():
             DeclareLaunchArgument("size", default_value="5.0"),
             DeclareLaunchArgument("z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
+            DeclareLaunchArgument("reference_rate", default_value="100.0"),
             DeclareLaunchArgument("land_after", default_value="true"),
             DeclareLaunchArgument("settle_time", default_value="1.0"),
             DeclareLaunchArgument("altitude_tolerance", default_value="0.1"),
