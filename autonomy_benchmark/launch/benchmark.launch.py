@@ -84,7 +84,7 @@ def generate_launch_description():
             DeclareLaunchArgument("traj", default_value="circle"),
             DeclareLaunchArgument("speed", default_value="2.0"),
             DeclareLaunchArgument("size", default_value="5.0"),
-            DeclareLaunchArgument("z", default_value="5.0"),
+            DeclareLaunchArgument("z", default_value="2.0"),
             DeclareLaunchArgument("cycles", default_value="4"),
             DeclareLaunchArgument("bag_root", default_value="benchmark_bags"),
             mavros,
